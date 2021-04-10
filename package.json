@@ -1,5 +1,5 @@
 {
-  "name": "an1388-node",
+  "name": "an1388-node-tnt",
   "version": "1.0.0",
   "main": "example.js",
   "scripts": {
@@ -9,7 +9,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "serialport": "^4.0.7"
+    "raspi-serial": "^6.0.0"
   },
   "devDependencies": {
     "jsdoc-strip-async-await": "^0.1.0",

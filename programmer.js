@@ -1,8 +1,11 @@
 'use strict'
 
-const Serial = require('serialport')
+const raspi = require('raspi');
+const Serial = require('raspi-serial').Serial;
 const EventEmitter = require('events').EventEmitter
 const fs = require('fs')
+
+var _serial;
 
 /**
  * Instantiable bootloader programmer class. Provides access to serial port UART programmer
@@ -13,7 +16,7 @@ module.exports = class Programmer extends EventEmitter {
      * Create a programmer instance
      * @param {number} baudRate - A standard UART baudrate, defaults to 115200
      */
-    constructor(port = '/dev/ttyUSB0', baudRate = 115200) {
+    constructor(serial) {
         super()
 
         this.CRCLookup = [
@@ -26,49 +29,15 @@ module.exports = class Programmer extends EventEmitter {
         // Debug level
         this.debug = 0
 
-        // Set serial baud rate
-        this.baudRate = baudRate
+        _serial = serial;
 
-        // Open the USB port
-        this._configurePort().then(() => console.debug((`Port '${this._port}' opened sucessfully!`)))
-    }
-
-    async _configurePort(port = '/dev/ttyUSB0') {
-        // Fetch available USB ports
-        let usbPorts = await new Promise((resolve, reject) => {
-            return Serial.list((e, p) => {
-                if (e) return reject(e)
-                return resolve(p.filter(n => n.comName.indexOf('USB') > -1))
-            })
-        })
-
-        // Set instance port
-        this._port = usbPorts[0].comName
-
-        // Set up UART
-        const serialOptions = {
-            baudRate: this.baudRate,
-            dataBits: 8,
-            parity: 'none',
-            stopBits: 1
-        }
-
-        // Open first available (for now)
-        this.port = new Serial(this._port, serialOptions)
-
-        this.responseData = []
-
-        // Read data when it is received
-        this.port.on('data', data => this._handleData(data))
-
-        return true
     }
 
     //
     // Private incoming data handler
     //
 
-    _handleData(data) {
+    handleData(data) {
         // Clear response timeout
         clearTimeout(this.responseTimeout)
 
@@ -93,15 +62,6 @@ module.exports = class Programmer extends EventEmitter {
     }
 
     /**
-     * Alias for checking connection status
-     * @return {boolean} - connection status
-     */
-
-    get connected() {
-        return !!this.port && this.port.isOpen()
-    }
-
-    /**
      * Enable debugging
      */
 
@@ -116,22 +76,6 @@ module.exports = class Programmer extends EventEmitter {
     debugDisable() {
         // Clear debug flag
         console._debug = 0
-    }
-
-    /**
-     * This resolves when the device is properly connected - a good starting point for a program
-     * @return {Promise} - a promise that resolves when the programmer is connected
-     */
-
-    onceConnected() {
-        return new Promise((resolve, reject) => {
-            let f;
-            (f = () => {
-                if (this.connected) return resolve()
-                else if (this.stopped) return reject()
-                else return setTimeout(() => f(), 100)
-            })()
-        })
     }
 
     /**
@@ -216,11 +160,13 @@ module.exports = class Programmer extends EventEmitter {
         let request = [0x01, ...command, ...(this.escape(this.crc16(command))), 0x04]
 
         // Verify connection
-        if (!this.connected) throw 'Port not connected, unable to write.'
+        //if (!this.connected) throw 'Port not connected, unable to write.'
+        if (!_serial) throw 'Serial not connected, unable to write.'
 
         // Write request to serial
         await new Promise((resolve, reject) => {
-            this.port.write(Buffer.from(request), e => e ? reject(e) : resolve())
+            //this.port.write(Buffer.from(request), e => e ? reject(e) : resolve())
+            _serial.write(Buffer.from(request), e => e ? reject(e) : resolve());
         })
 
         // Start timeout
