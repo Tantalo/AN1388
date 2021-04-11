@@ -1,7 +1,7 @@
 {
   "name": "an1388-node-tnt",
   "version": "1.0.0",
-  "main": "example.js",
+  "main": "programmer.js",
   "scripts": {
     "doc": "jsdoc2md -c jsdoc.conf programmer.js >> README.md"
   },
