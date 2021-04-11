@@ -1,7 +1,5 @@
 'use strict'
 
-const raspi = require('raspi');
-const Serial = require('raspi-serial').Serial;
 const EventEmitter = require('events').EventEmitter
 const fs = require('fs')
 
