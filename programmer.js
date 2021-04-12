@@ -45,8 +45,10 @@ module.exports = class Programmer extends EventEmitter {
 
         if (this.responseData.length < 4 ||
             this.responseData[this.responseData.length - 1] !== 0x04 ||
-            this.responseData[this.responseData.length - 2] == 0x10)
-            return
+            this.responseData[this.responseData.length - 2] == 0x10) {
+                this.emit('invalidData', this.responseData);
+                return;
+        }
 
         // Unescape control characters and strip front and back
         let response = this.unescape(this.responseData.slice(1, -1))
@@ -58,7 +60,7 @@ module.exports = class Programmer extends EventEmitter {
         this.lastResponse = response.slice(1, -2)
 
         // Emit new processed data event
-        this.emit('newData', this.lastResponse)
+        this.emit('newData', this.lastResponse);
     }
 
     /**
@@ -229,6 +231,12 @@ module.exports = class Programmer extends EventEmitter {
                 const timeoutCb = e => reject(e)
 
                 this.once('responseTimeout', timeoutCb)
+
+                this.once('invalidData', d => {
+                    console.log("Invalid data: ", d);
+                    console.log("Writed " + currentLine + " of " + lines.length);
+                    resolve(true);
+                });
 
                 // Wait for new data to be received
                 this.once('newData', d => {
