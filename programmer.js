@@ -29,6 +29,8 @@ module.exports = class Programmer extends EventEmitter {
 
         _serial = serial;
 
+        this.responseData = [];
+
     }
 
     //
