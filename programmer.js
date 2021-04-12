@@ -25,7 +25,7 @@ module.exports = class Programmer extends EventEmitter {
         this.debugEnable()
 
         // Debug level
-        this.debug = 0
+        this.debug = 1
 
         _serial = serial;
 
@@ -254,6 +254,8 @@ module.exports = class Programmer extends EventEmitter {
                     // Write a dot to terminal
                     if (this.debug) process.stdout.write('.')
                     currentLine++
+
+                    console.log("currentLine", currentLine, lines.length - 1);
 
                     // Recurse or resolve
                     if (currentLine < lines.length - 1) sendLine()
