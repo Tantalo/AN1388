@@ -224,13 +224,13 @@ module.exports = class Programmer extends EventEmitter {
                     .match(/.{1,2}/g)
                     .map(c => parseInt(c, 16))
 
-                // Send the line
-                this.send([0x03, ...line])
-
                 // If the command times out, reject promise
                 const timeoutCb = e => reject(e)
 
                 this.once('responseTimeout', timeoutCb)
+
+                // Send the line
+                this.send([0x03, ...line])
 
                 this.once('invalidData', d => {
                     console.log("Invalid data: ", d);
