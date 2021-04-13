@@ -46,7 +46,7 @@ module.exports = class Programmer extends EventEmitter {
         if (this.responseData.length < 4 ||
             this.responseData[this.responseData.length - 1] !== 0x04 ||
             this.responseData[this.responseData.length - 2] == 0x10) {
-                this.emit('invalidData', this.responseData);
+                //this.emit('invalidData', this.responseData);
                 return;
         }
 
