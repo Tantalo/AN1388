@@ -333,7 +333,7 @@ module.exports = class Programmer extends EventEmitter {
                     console.log("currentLine", currentLine, lines.length - 1);
                     currentLine++
 
-                    var e = new Date().getTime() + 20;
+                    var e = new Date().getTime() + 5;
                     while (new Date().getTime() <= e) {}
 
                 } catch (err) {
