@@ -174,7 +174,7 @@ module.exports = class Programmer extends EventEmitter {
         // Start timeout
         clearTimeout(this.responseTimeout)
         this.responseTimeout = setTimeout(() => {
-            console.debug('Bootloader response timeout.')
+            console.log('Bootloader response timeout.')
             this.responseData = []
             this.emit('responseTimeout', 'Error on command: ' + [...command])
         }, 2000)
@@ -189,7 +189,7 @@ module.exports = class Programmer extends EventEmitter {
      * @fires Programmer#uploadProgress
      */
 
-    upload(filename = 'test.hex') {
+    uploadOld(filename = 'test.hex') {
         // Read file line-by-line syncronously
         var lines = fs.readFileSync(filename, 'utf-8').split('\n')
 
@@ -273,6 +273,77 @@ module.exports = class Programmer extends EventEmitter {
 
             // Recursively send lines until EOF is reached
             sendLine()
+        })
+    }
+
+    upload(filename = 'test.hex') {
+        // Read file line-by-line syncronously
+        var lines = fs.readFileSync(filename, 'utf-8').split('\n')
+
+        // Allow enough listeners to accomodate for each line
+        this.setMaxListeners(lines.length + 10)
+
+        // Check Intel HEX format
+        if (lines.find(l => l.length < 7)) throw ('Invalid hex file')
+
+        // Byte progress object
+        let bytes = {
+            total: lines.reduce((total, l) => total += (l.length - 1) / 2, 0),
+            sent: 0,
+            get percent() {
+                return bytes.sent / bytes.total
+            }
+        }
+
+        // Current line being sent
+        var currentLine = 0
+
+        // Send each line individually
+        return new Promise((resolve, reject) => {
+            this.per = 0
+
+            while (currentLine < lines.length - 1) {
+                try {
+                    let line = lines[currentLine]
+
+                    line = line
+                    .slice(1)
+                    .match(/.{1,2}/g)
+                    .map(c => parseInt(c, 16));
+
+                    // Send the line
+                    this.send([0x03, ...line]);
+
+                    // Update status bytes
+                    bytes.sent += line.length
+
+                    /**
+                     * Upload Progress events
+                     * @event Programmer#uploadProgress
+                     * @type {object}
+                     * @property {number} total - Total bytes to be sent
+                     * @property {number} sent - Bytes sent
+                     * @property {number} percent - Percentage of bytes sent
+                     */
+                    if (bytes.percent > this.per + 0.01 || bytes.percent >= 1.0) {
+                        this.per = bytes.percent
+                        this.emit('uploadProgress', bytes)
+                    }
+
+                    console.log("currentLine", currentLine, lines.length - 1);
+                    currentLine++
+
+                    var e = new Date().getTime() + 200;
+                    while (new Date().getTime() <= e) {}
+
+                } catch (err) {
+                    reject(err);
+                }
+
+            }
+
+            resolve(true);
+
         })
     }
 
