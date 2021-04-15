@@ -170,8 +170,15 @@ module.exports = class Programmer extends EventEmitter {
         // Write request to serial
         await new Promise((resolve, reject) => {
             //this.port.write(Buffer.from(request), e => e ? reject(e) : resolve())
-            _serial.write(Buffer.from(request), e => e ? reject(e) : resolve());
-        })
+            _serial.write(Buffer.from(request), e => {
+                if (e) {
+                    console.log("Error in serial write: " + e);
+                    reject(e);
+                } else {
+                    resolve();
+                }
+            });
+        });
 
         // Start timeout
         clearTimeout(this.responseTimeout)
