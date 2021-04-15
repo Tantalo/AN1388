@@ -38,6 +38,8 @@ module.exports = class Programmer extends EventEmitter {
     //
 
     handleData(data) {
+
+        console.log("handle data");
         // Clear response timeout
         clearTimeout(this.responseTimeout)
 
