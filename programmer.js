@@ -189,7 +189,7 @@ module.exports = class Programmer extends EventEmitter {
      * @fires Programmer#uploadProgress
      */
 
-    uploadOld(filename = 'test.hex') {
+    upload(filename = 'test.hex') {
         // Read file line-by-line syncronously
         var lines = fs.readFileSync(filename, 'utf-8').split('\n')
 
@@ -276,7 +276,7 @@ module.exports = class Programmer extends EventEmitter {
         })
     }
 
-    upload(filename = 'test.hex') {
+    uploadTemp(filename = 'test.hex') {
         // Read file line-by-line syncronously
         var lines = fs.readFileSync(filename, 'utf-8').split('\n')
 
