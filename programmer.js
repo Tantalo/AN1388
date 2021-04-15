@@ -157,38 +157,49 @@ module.exports = class Programmer extends EventEmitter {
      */
 
     async send(command) {
-        // Escape control characters
-        command = this.escape(command)
 
-        // Build request
-        let request = [0x01, ...command, ...(this.escape(this.crc16(command))), 0x04]
+        console.log("send(command)");
 
-        // Verify connection
-        //if (!this.connected) throw 'Port not connected, unable to write.'
-        if (!_serial) throw 'Serial not connected, unable to write.'
+        try {
 
-        // Write request to serial
-        await new Promise((resolve, reject) => {
-            //this.port.write(Buffer.from(request), e => e ? reject(e) : resolve())
-            _serial.write(Buffer.from(request), e => {
-                if (e) {
-                    console.log("Error in serial write: " + e);
-                    reject(e);
-                } else {
-                    resolve();
-                }
+            // Escape control characters
+            command = this.escape(command)
+
+            // Build request
+            let request = [0x01, ...command, ...(this.escape(this.crc16(command))), 0x04]
+
+            // Verify connection
+            //if (!this.connected) throw 'Port not connected, unable to write.'
+            if (!_serial) throw 'Serial not connected, unable to write.'
+
+            // Write request to serial
+            await new Promise((resolve, reject) => {
+                //this.port.write(Buffer.from(request), e => e ? reject(e) : resolve())
+                _serial.write(Buffer.from(request), e => {
+                    if (e) {
+                        console.log("Error in serial write: " + e);
+                        reject(e);
+                    } else {
+                        console.log("Writed to serial correctly");
+                        resolve();
+                    }
+                });
             });
-        });
 
-        // Start timeout
-        clearTimeout(this.responseTimeout)
-        this.responseTimeout = setTimeout(() => {
-            console.log('Bootloader response timeout.')
-            this.responseData = []
-            this.emit('responseTimeout', 'Error on command: ' + [...command])
-        }, 2000)
+            // Start timeout
+            clearTimeout(this.responseTimeout)
+            this.responseTimeout = setTimeout(() => {
+                console.log('Bootloader response timeout.')
+                this.responseData = []
+                this.emit('responseTimeout', 'Error on command: ' + [...command])
+            }, 2000)
 
-        return request.length
+            return request.length;
+
+        } catch(err) {
+            console.log("Error in send(command): " + err);
+            return 0;
+        }
     }
 
     /**
